@@ -16,8 +16,3 @@ public class Main {
         cafe.printMainMenu();
     }
 }
-
-//@todo not enough muffins need to go back to main menu the first one (c) I hadn't thought of this. Either automatically Cancel an order to bake or proceed with baking more muffins for the existing order, either option is acceptable.)
-//@todo add a readme file
-//@todo add a exit condition for every menu options like payment 
-

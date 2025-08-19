@@ -14,13 +14,13 @@ import org.junit.After;
  */
 public class OrderTest {
     // Shared test fixtures
-    private FoodItem m;  // Muffin
-    private FoodItem c;  // Coffee
-    private FoodItem s;  // Shake
-    private Order o;     // Order under test
+    private FoodItem muffin;       // Muffin item
+    private FoodItem coffee;       // Coffee item
+    private FoodItem shake;        // Shake item
+    private Order order;           // Order under test
 
-    private Combo coffeeCombo;  // Coffee + Muffin combo
-    private Combo shakesCombo;  // Shake + Muffin combo
+    private Combo coffeeMuffinCombo;   // Coffee + Muffin combo
+    private Combo shakeMuffinCombo;    // Shake + Muffin combo
 
     /**
      * Set up fresh objects before each test.
@@ -28,27 +28,27 @@ public class OrderTest {
      */
     @Before
     public void setUp() {
-        m = new FoodItem("Muffin", 2.00, 25);   // Price $2, stock 25
-        c = new FoodItem("Coffee", 2.50, 0);    // Price $2.50, stock irrelevant
-        s = new FoodItem("Shake", 3.00, 0);     // Price $3.00, stock irrelevant
-        o = new Order();
+        muffin = new FoodItem("Muffin", 2.00, 25);   // Price $2, stock 25
+        coffee = new FoodItem("Coffee", 2.50, 0);    // Price $2.50, stock irrelevant
+        shake  = new FoodItem("Shake", 3.00, 0);     // Price $3.00, stock irrelevant
+        order  = new Order();
 
         // Create common combos used across multiple tests
-        coffeeCombo = new Combo("Coffee + Muffin", c, m, 1.0); // $1 discount
-        shakesCombo = new Combo("Shake + Muffin", s, m, 1.0);  // $1 discount
+        coffeeMuffinCombo = new Combo("Coffee + Muffin", coffee, muffin, 1.0); // $1 discount
+        shakeMuffinCombo  = new Combo("Shake + Muffin", shake, muffin, 1.0);   // $1 discount
     }
 
     /**
-     *  nullifing references  after each test.
+     * Nullify references after each test.
      */
     @After
     public void tearDown() {
-        m = null;
-        c = null;
-        s = null;
-        o = null;
-        coffeeCombo = null;
-        shakesCombo = null;
+        muffin = null;
+        coffee = null;
+        shake = null;
+        order = null;
+        coffeeMuffinCombo = null;
+        shakeMuffinCombo = null;
     }
 
     /**
@@ -60,9 +60,9 @@ public class OrderTest {
      */
     @Test
     public void calculateTotalItemsOnly() {
-        assertTrue(o.addItem(m, 4));
-        assertTrue(o.addItem(c, 2));
-        assertEquals(13.00, o.calculateTotal(), 0.001);
+        assertTrue(order.addItem(muffin, 4));
+        assertTrue(order.addItem(coffee, 2));
+        assertEquals(13.00, order.calculateTotal(), 0.001);
     }
 
     /**
@@ -72,8 +72,8 @@ public class OrderTest {
      */
     @Test
     public void calculateTotalWithComboDiscount() {
-        assertTrue(o.addCombo(coffeeCombo, 3));
-        assertEquals(10.50, o.calculateTotal(), 0.001);
+        assertTrue(order.addCombo(coffeeMuffinCombo, 3));
+        assertEquals(10.50, order.calculateTotal(), 0.001);
     }
 
     /**
@@ -86,29 +86,29 @@ public class OrderTest {
      */
     @Test
     public void muffinStockGuardAcrossItemsAndCombos() {
-        m = new FoodItem("Muffin", 2.00, 6);  // Override stock for this test
-        Combo combo = new Combo("Shake + Muffin", s, m, 1.0);
+        muffin = new FoodItem("Muffin", 2.00, 6);  // Override stock for this test
+        Combo shakeCombo = new Combo("Shake + Muffin", shake, muffin, 1.0);
 
-        assertTrue(o.addItem(m, 2));
-        assertTrue(o.addCombo(combo, 3));
-        assertFalse(o.addCombo(combo, 2));
-        assertEquals(5, o.getMuffinsOrderedSoFar());
+        assertTrue(order.addItem(muffin, 2));
+        assertTrue(order.addCombo(shakeCombo, 3));
+        assertFalse(order.addCombo(shakeCombo, 2));
+        assertEquals(5, order.getMuffinsOrderedSoFar());
     }
 
     /**
      * Check that muffin stock reduces correctly after finalizing orders.
-     * Muffin stock starts at 12.
+     * Muffin stock starts at 25.
      * Ordered: 3 muffins + 2 coffee combos + 4 shake combos = 9 muffins total.
-     * Final stock = 12 - 9 = 3
+     * Final stock = 25 - 9 = 16
      */
     @Test
-    public void calculateMuffinStock() {
-        assertTrue(o.addItem(m, 3));
-        assertTrue(o.addCombo(coffeeCombo, 2));
-        assertTrue(o.addCombo(shakesCombo, 4));
+    public void calculateMuffinStockAfterFinalize() {
+        assertTrue(order.addItem(muffin, 3));
+        assertTrue(order.addCombo(coffeeMuffinCombo, 2));
+        assertTrue(order.addCombo(shakeMuffinCombo, 4));
 
-        o.finalizeOrder();
-        assertEquals(16, m.getStock());
+        order.finalizeOrder();
+        assertEquals(16, muffin.getStock());
     }
 
     /**
@@ -119,18 +119,18 @@ public class OrderTest {
      *  - Shake: 6 direct + 4 (shake combo) = 10
      */
     @Test
-    public void calculateSoldCount() {
-        assertTrue(o.addItem(m, 3));
-        assertTrue(o.addItem(c, 1));
-        assertTrue(o.addItem(s, 6));
-        assertTrue(o.addCombo(coffeeCombo, 2));
-        assertTrue(o.addCombo(shakesCombo, 4));
+    public void calculateSoldCountAfterFinalize() {
+        assertTrue(order.addItem(muffin, 3));
+        assertTrue(order.addItem(coffee, 1));
+        assertTrue(order.addItem(shake, 6));
+        assertTrue(order.addCombo(coffeeMuffinCombo, 2));
+        assertTrue(order.addCombo(shakeMuffinCombo, 4));
 
-        o.finalizeOrder();
+        order.finalizeOrder();
 
-        assertEquals(9, m.getSoldCount());
-        assertEquals(3, c.getSoldCount());
-        assertEquals(10, s.getSoldCount());
+        assertEquals(9, muffin.getSoldCount());
+        assertEquals(3, coffee.getSoldCount());
+        assertEquals(10, shake.getSoldCount());
     }
 
     /**
@@ -142,17 +142,16 @@ public class OrderTest {
      * Check both Order total and sum of item revenues match.
      */
     @Test
-    public void calculateRevenueSum() {
-        assertTrue(o.addCombo(coffeeCombo, 2));
-        assertTrue(o.addCombo(shakesCombo, 1));
-        assertTrue(o.addItem(c, 3));
+    public void calculateRevenueSumAcrossItemsAndCombos() {
+        assertTrue(order.addCombo(coffeeMuffinCombo, 2));
+        assertTrue(order.addCombo(shakeMuffinCombo, 1));
+        assertTrue(order.addItem(coffee, 3));
 
         double expected = 18.50;
-        assertEquals(expected, o.calculateTotal(), 0.001);
+        assertEquals(expected, order.calculateTotal(), 0.001);
 
-        o.finalizeOrder();
-        double revenueSum = c.getRevenue() + m.getRevenue() + s.getRevenue();
+        order.finalizeOrder();
+        double revenueSum = coffee.getRevenue() + muffin.getRevenue() + shake.getRevenue();
         assertEquals(expected, revenueSum, 0.001);
     }
 }
-
